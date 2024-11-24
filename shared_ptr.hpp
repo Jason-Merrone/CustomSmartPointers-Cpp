@@ -1,5 +1,7 @@
+#pragma once
 #include <iostream>
 
+// Standard Shared Pointer
 namespace usu
 {
     template <typename T>
@@ -103,6 +105,164 @@ namespace usu
     shared_ptr<T> make_shared(Args&&... args)
     {
         return shared_ptr<T>(new T(std::forward<Args>(args)...));
+    }
+
+    // Array shared pointer
+
+    template <typename T>
+    class shared_ptr<T[]>
+    {
+      public:
+        explicit shared_ptr(T* ptr = nullptr, size_t size = 0);
+        shared_ptr(const shared_ptr<T[]>& otherShared);
+        shared_ptr(shared_ptr<T[]>&& otherShared) noexcept;
+
+        // Destructor
+        ~shared_ptr();
+
+        shared_ptr<T[]>& operator=(const shared_ptr<T[]>& otherShared);
+        shared_ptr<T[]>& operator=(shared_ptr<T[]>&& otherShared) noexcept;
+
+        T& operator[](size_t index) const;
+
+        size_t size() const { return this->arraySize; }
+
+        unsigned int use_count() const { return (refCount) ? *refCount : 0; }
+
+      private:
+        unsigned int* refCount;
+        T* rawPointer;
+        size_t arraySize;
+    };
+
+    // Constructor
+    template <typename T>
+    shared_ptr<T[]>::shared_ptr(T* ptr, size_t size) :
+        refCount(nullptr), rawPointer(ptr), arraySize(size)
+    {
+        if (ptr)
+        {
+            refCount = new unsigned int(1);
+        }
+    }
+
+    // Copy constructor
+    template <typename T>
+    shared_ptr<T[]>::shared_ptr(const shared_ptr<T[]>& otherShared) :
+        refCount(otherShared.refCount), rawPointer(otherShared.rawPointer), arraySize(otherShared.arraySize)
+    {
+        if (refCount)
+        {
+            (*refCount)++;
+        }
+    }
+
+    // Move constructor
+    template <typename T>
+    shared_ptr<T[]>::shared_ptr(shared_ptr<T[]>&& otherShared) noexcept
+        :
+        refCount(otherShared.refCount),
+        rawPointer(otherShared.rawPointer), arraySize(otherShared.arraySize)
+    {
+        otherShared.refCount = nullptr;
+        otherShared.rawPointer = nullptr;
+        otherShared.arraySize = 0;
+    }
+
+    // Destructor
+    template <typename T>
+    shared_ptr<T[]>::~shared_ptr()
+    {
+        if (refCount)
+        {
+            (*refCount)--;
+            if (*refCount == 0)
+            {
+                delete[] rawPointer;
+                delete refCount;
+            }
+        }
+    }
+
+    // Copy assignment operator
+    template <typename T>
+    shared_ptr<T[]>& shared_ptr<T[]>::operator=(const shared_ptr<T[]>& otherShared)
+    {
+        if (this != &otherShared)
+        {
+            // Decrement current object
+            if (refCount)
+            {
+                (*refCount)--;
+                if (*refCount == 0)
+                {
+                    delete[] rawPointer;
+                    delete refCount;
+                }
+            }
+
+            // Copy data from otherShared
+            rawPointer = otherShared.rawPointer;
+            refCount = otherShared.refCount;
+            arraySize = otherShared.arraySize;
+
+            // Increment the refCoun
+            if (refCount)
+            {
+                (*refCount)++;
+            }
+        }
+        return *this;
+    }
+
+    // Move assignment operator
+    template <typename T>
+    shared_ptr<T[]>& shared_ptr<T[]>::operator=(shared_ptr<T[]>&& otherShared) noexcept
+    {
+        if (this != &otherShared)
+        {
+            // Decrement current object's refCount
+            if (refCount)
+            {
+                (*refCount)--;
+                if (*refCount == 0)
+                {
+                    delete[] rawPointer;
+                    delete refCount;
+                }
+            }
+
+            // Transfer ownership from otherShared
+            rawPointer = otherShared.rawPointer;
+            refCount = otherShared.refCount;
+            arraySize = otherShared.arraySize;
+
+            otherShared.rawPointer = nullptr;
+            otherShared.refCount = nullptr;
+            otherShared.arraySize = 0;
+        }
+        return *this;
+    }
+
+    // Overloaded [] operator
+    template <typename T>
+    T& shared_ptr<T[]>::operator[](size_t index) const
+    {
+        if (!rawPointer)
+        {
+            throw std::runtime_error("Attempting to access elements of a null shared_ptr.");
+        }
+        if (index >= arraySize)
+        {
+            throw std::out_of_range("Index out of bounds.");
+        }
+        return rawPointer[index];
+    }
+
+    template <typename T, unsigned int N>
+    shared_ptr<T[]> make_shared_array()
+    {
+        return shared_ptr<T[]>(new T[N], N);
     }
 
 } // namespace usu

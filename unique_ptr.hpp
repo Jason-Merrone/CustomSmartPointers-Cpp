@@ -1,4 +1,7 @@
-#include <iostream>
+#pragma once
+
+#include <stdexcept>
+#include <utility>
 
 namespace usu
 {
@@ -6,48 +9,50 @@ namespace usu
     class unique_ptr
     {
       public:
-        unique_ptr();
-        explicit unique_ptr(T* ptr);
-        unique_ptr(unique_ptr<T>&& otherShared);
+        // Constructors
+        explicit unique_ptr(T* ptr = nullptr);
+        unique_ptr(unique_ptr<T>&& otherUnique) noexcept;
 
         // Destructor
         ~unique_ptr();
 
-        // Returns a pointer to the raw pointer
-        const T* get() { return this->rawPointer; }
+        // Assignment Operators
+        unique_ptr<T>& operator=(unique_ptr<T>&& otherUnique) noexcept;
 
-        // Releases the raw pointer and returns it
+        // Dereference Operators
+        T& operator*();
+        const T& operator*() const;
+
+        // Arrow Operators
+        T* operator->();
+        const T* operator->() const;
+
+        // Utility Functions
+        T* get() const { return rawPointer; }
         T* release();
+        void reset(T* ptr = nullptr);
+        void swap(unique_ptr<T>& other) noexcept;
 
-        unique_ptr<T>& operator=(unique_ptr<T>&& otherUnique);
-        T* operator->() { return get(); }
-        T operator*() { return *(get()); }
-        bool operator==(const unique_ptr<T>& otherUnique);
-        bool operator!=(const unique_ptr<T>& otherUnique);
+        // Comparison Operators
+        bool operator==(const unique_ptr<T>& otherUnique) const;
+        bool operator!=(const unique_ptr<T>& otherUnique) const;
 
       private:
-        unsigned int* refCount;
         T* rawPointer;
     };
 
-    // Default constructor
+    // Constructor
     template <typename T>
-    unique_ptr<T>::unique_ptr()
+    unique_ptr<T>::unique_ptr(T* ptr) :
+        rawPointer(ptr)
     {
-        rawPointer = nullptr;
     }
 
+    // Move Constructor
     template <typename T>
-    unique_ptr<T>::unique_ptr(T* ptr)
+    unique_ptr<T>::unique_ptr(unique_ptr<T>&& otherUnique) noexcept :
+        rawPointer(otherUnique.rawPointer)
     {
-        rawPointer = ptr;
-    }
-
-    // Move constructor
-    template <typename T>
-    unique_ptr<T>::unique_ptr(unique_ptr<T>&& otherUnique)
-    {
-        rawPointer = otherUnique.rawPointer;
         otherUnique.rawPointer = nullptr;
     }
 
@@ -58,48 +63,54 @@ namespace usu
         delete rawPointer;
     }
 
-    // Move operator
+    // Move Assignment Operator
     template <typename T>
-    unique_ptr<T>& unique_ptr<T>::operator=(unique_ptr<T>&& otherUnique)
+    unique_ptr<T>& unique_ptr<T>::operator=(unique_ptr<T>&& otherUnique) noexcept
     {
         if (this != &otherUnique)
         {
-            delete rawPointer;                   // Delete the currently managed object
-            rawPointer = otherUnique.rawPointer; // Transfer ownership
-            otherUnique.rawPointer = nullptr;    // Nullify the source
+            delete rawPointer;
+            rawPointer = otherUnique.rawPointer;
+            otherUnique.rawPointer = nullptr;
         }
         return *this;
     }
 
-    // Make unique function
-    template <typename T, typename... Args>
-    unique_ptr<T> make_unique(Args&&... args)
-    {
-        return unique_ptr<T>(new T(std::forward<Args>(args)...));
-    }
-
-    // Checks if both unique pointers contain the same raw pointer
+    // Dereference Operator
     template <typename T>
-    bool unique_ptr<T>::operator==(const unique_ptr<T>& otherUnique)
+    T& unique_ptr<T>::operator*()
     {
-        if (otherUnique->rawPointer == rawPointer)
+        if (!rawPointer)
         {
-            return true;
+            throw std::runtime_error("Attempting to dereference a null unique_ptr.");
         }
-        return false;
+        return *rawPointer;
     }
 
-    // Checks if both unique pointers contain different raw pointer
     template <typename T>
-    bool unique_ptr<T>::operator!=(const unique_ptr<T>& otherUnique)
+    const T& unique_ptr<T>::operator*() const
     {
-        if (otherUnique->rawPointer != rawPointer)
+        if (!rawPointer)
         {
-            return true;
+            throw std::runtime_error("Attempting to dereference a null unique_ptr.");
         }
-        return false;
+        return *rawPointer;
     }
 
+    // Arrow Operator
+    template <typename T>
+    T* unique_ptr<T>::operator->()
+    {
+        return rawPointer;
+    }
+
+    template <typename T>
+    const T* unique_ptr<T>::operator->() const
+    {
+        return rawPointer;
+    }
+
+    // Release
     template <typename T>
     T* unique_ptr<T>::release()
     {
@@ -108,4 +119,41 @@ namespace usu
         return temp;
     }
 
+    // Reset
+    template <typename T>
+    void unique_ptr<T>::reset(T* ptr)
+    {
+        if (rawPointer != ptr)
+        {
+            delete rawPointer;
+            rawPointer = ptr;
+        }
+    }
+
+    // Swap
+    template <typename T>
+    void unique_ptr<T>::swap(unique_ptr<T>& other) noexcept
+    {
+        std::swap(rawPointer, other.rawPointer);
+    }
+
+    // Comparison Operators
+    template <typename T>
+    bool unique_ptr<T>::operator==(const unique_ptr<T>& otherUnique) const
+    {
+        return this->get() == otherUnique.get();
+    }
+
+    template <typename T>
+    bool unique_ptr<T>::operator!=(const unique_ptr<T>& otherUnique) const
+    {
+        return this->get() != otherUnique.get();
+    }
+
+    // make_unique for single objects
+    template <typename T, typename... Args>
+    unique_ptr<T> make_unique(Args&&... args)
+    {
+        return unique_ptr<T>(new T(std::forward<Args>(args)...));
+    }
 } // namespace usu
