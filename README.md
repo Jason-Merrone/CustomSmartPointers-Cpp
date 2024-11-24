@@ -1,2 +1,2 @@
 # CustomSmartPointers-Cpp
-A custom implementation of C++ chared and unique pointers in a custom namespace.
+A custom implementation of C++ shared and unique pointers in a custom namespace.
