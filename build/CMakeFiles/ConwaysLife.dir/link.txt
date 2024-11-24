@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/ConwaysLife.dir/main.cpp.o -o ConwaysLife

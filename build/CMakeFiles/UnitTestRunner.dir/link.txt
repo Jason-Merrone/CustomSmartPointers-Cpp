@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/UnitTestRunner.dir/TestMemory.cpp.o -o UnitTestRunner  lib/libgtest_main.a lib/libgtest.a
