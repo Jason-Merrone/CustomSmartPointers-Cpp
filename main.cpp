@@ -30,8 +30,7 @@ class MyClass
     unsigned int m_rank = 0;
 };
 void demoSharedPointer();
-// void demoUniquePointer();
-
+void demoUniquePointer();
 // ------------------------------------------------------------------
 //
 // Shared memory assignment: usu::shared_ptr usu::unique_ptr
@@ -40,7 +39,7 @@ void demoSharedPointer();
 int main()
 {
     demoSharedPointer();
-    // demoUniquePointer();
+    demoUniquePointer();
     return 0;
 }
 void demoSharedPointer()
@@ -98,45 +97,23 @@ void demoSharedPointer()
     // {
     // a1[i].showMessage("this is a test");
     // }
-    // }
-    // void demoUniquePointer()
-    // {
-    // std::cout << std::endl
-    // << "--- Unique Pointers ---\n\n";
-    // std::unique_ptr<int> p1 = std::make_unique<int>(10);
-    // usu::unique_ptr<int> p2 = usu::make_unique<int>(10);
-    // //std::unique_ptr<int> p1b = p1; // Causes a compile error (and it should)
-    // //usu::unique_ptr<int> p2b = p2; // Causes a compile error (and it should)
-    // std::cout << "from *p1 : " << *p1 << std::endl;
-    // std::unique_ptr<int> p3;
-    // p3 = std::move(p1);
-    // //std::cout << *p1 << std::endl; // Causes a runtime error (and it should)
-    // std::cout << "from *p3 : " << *p3 << std::endl;
-    // std::cout << "from *p2 : " << *p2 << std::endl;
-    // usu::unique_ptr<int> p4;
-    // p4 = std::move(p2);
-    // //std::cout << *p2 << std::endl; // Causes a runtime error (and it should)
-    // std::cout << "from *p4 : " << *p4 << std::endl;
 }
-
-// #include "shared_ptr.hpp"
-// #include "unique_ptr.hpp"
-
-// #include <iostream>
-// #include <memory>
-// #include <string>
-// int main()
-// {
-//     usu::shared_ptr<int> sp1(new int(42));
-
-//     std::cout << *sp1.get() << std::endl;
-//     std::cout << sp1.use_count() << std::endl;
-
-//     usu::shared_ptr<int> sp2(sp1);
-
-//     std::cout << *sp1.get() << std::endl;
-//     std::cout << sp1.use_count() << std::endl;
-
-//     usu::shared_ptr<int> sp3(std::move(sp1));
-//     return 0;
-// }
+void demoUniquePointer()
+{
+    std::cout << std::endl
+              << "--- Unique Pointers ---\n\n";
+    std::unique_ptr<int> p1 = std::make_unique<int>(10);
+    usu::unique_ptr<int> p2 = usu::make_unique<int>(10);
+    // std::unique_ptr<int> p1b = p1; // Causes a compile error (and it should)
+    // usu::unique_ptr<int> p2b = p2; // Causes a compile error (and it should)
+    std::cout << "from *p1 : " << *p1 << std::endl;
+    std::unique_ptr<int> p3;
+    p3 = std::move(p1);
+    // std::cout << *p1 << std::endl; // Causes a runtime error (and it should)
+    std::cout << "from *p3 : " << *p3 << std::endl;
+    std::cout << "from *p2 : " << *p2 << std::endl;
+    usu::unique_ptr<int> p4;
+    p4 = std::move(p2);
+    // std::cout << *p2 << std::endl; // Causes a runtime error (and it should)
+    std::cout << "from *p4 : " << *p4 << std::endl;
+}
